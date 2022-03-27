@@ -1,0 +1,23 @@
+body {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(166,232,238,1) 100%);
+    font-family: "Arial";
+    font-size: 16px;
+    color: black;
+    overflow-x: hidden;
+    word-wrap: break-word;
+}
+
+
+form.login_form {
+    margin-left: auto;
+    margin-right: auto;
+    top: 50%;
+    max-width: 450px;
+    background-color: #CEE8EE;
+    border: 1px solid gray;
+    padding: 10px;
+}
+
