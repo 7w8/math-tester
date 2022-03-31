@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 import random
-from answers import dict1
+from answers import all_dicts, all_dicts2
 
 
 class LoginForm(FlaskForm):
@@ -12,9 +12,29 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
+class TestRandom:
+    def __init__(self):
+        self.questions = random.sample(list(all_dicts2.keys()), 10)
+
+    def new_questions(self):
+        self.questions = random.sample(list(all_dicts2.keys()), 10)
+
+    def check_answers(self):
+        grade, mistakes = 0, []
+        for i in range(len(self.questions)):
+            answer = "ans" + str(i + 1)
+            if request.form[answer] == all_dicts2[self.questions[i]]:
+                grade += 10
+            else:
+                mistakes.append((self.questions[i], request.form[answer]))
+        self.new_questions()
+        print(mistakes)
+        return str(grade) + "%"
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+test_obj = TestRandom()
 
 
 @app.route('/')
@@ -34,16 +54,14 @@ def login():
 
 @app.route('/test', methods=['POST', 'GET'])
 def test():
-    questions = random.sample(list(dict1.keys()), 10)
     if request.method == 'GET':
-        return render_template('test.html', q1=questions[0], q2=questions[1],
-                               q3=questions[2], q4=questions[3], q5=questions[4],
-                               q6=questions[5], q7=questions[6], q8=questions[7],
-                               q9=questions[8], q10=questions[9])
+        return render_template('test.html', q1=test_obj.questions[0], q2=test_obj.questions[1],
+                               q3=test_obj.questions[2], q4=test_obj.questions[3], q5=test_obj.questions[4],
+                               q6=test_obj.questions[5], q7=test_obj.questions[6], q8=test_obj.questions[7],
+                               q9=test_obj.questions[8], q10=test_obj.questions[9])
     elif request.method == 'POST':
-        return "Форма отправлена"
+        return test_obj.check_answers()
 
 
 if __name__ == '__main__':
-    app.run(port=8080, host='127.0.0.1')
-
+    app.run(port=5000, host='127.0.0.1')
