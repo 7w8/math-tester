@@ -26,10 +26,10 @@ class TestRandom:
             if request.form[answer] == all_dicts2[self.questions[i]]:
                 grade += 10
             else:
-                mistakes.append((self.questions[i], request.form[answer]))
+                mistakes.append((self.questions[i], request.form[answer], all_dicts2[self.questions[i]]))
         self.new_questions()
-        print(mistakes)
-        return str(grade) + "%"
+        result = (str(grade) + "%", mistakes)
+        return result
 
 
 app = Flask(__name__)
@@ -60,7 +60,7 @@ def test():
                                q6=test_obj.questions[5], q7=test_obj.questions[6], q8=test_obj.questions[7],
                                q9=test_obj.questions[8], q10=test_obj.questions[9])
     elif request.method == 'POST':
-        return test_obj.check_answers()
+        return render_template("result.html", result=test_obj.check_answers())
 
 
 if __name__ == '__main__':
