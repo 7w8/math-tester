@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+Ваш результат: {{ result[0] }}
+<br><br>
+Ваши ошибки:
+<br><br>
+{% for item in result[1] %}
+    {{ item[0] }}
+<br>
+    Ваш ответ: {{ item[1] }}
+<br>
+    Правильный ответ: {{ item[2] }}
+<br><br>
+{% endfor %}
+</div>
+{% endblock %}
