@@ -11,5 +11,6 @@ class User(SqlAlchemyBase, UserMixin):
                            primary_key=True, autoincrement=True)
     username = sqlalchemy.Column(sqlalchemy.String, index=True, unique=True, nullable=True)
     password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    count = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
-    worst = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    done_count = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
+    mistakes_count = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
+    total_grade = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
