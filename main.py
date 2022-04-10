@@ -4,11 +4,15 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from flask_login import LoginManager, login_user, login_required, logout_user
 import random
+<<<<<<< HEAD
 from answers import all_dicts2
 from data import db_session
 from data.users import User
 import sqlite3
 import hashlib
+=======
+from answers import all_dicts, all_dicts2
+>>>>>>> c2a2ba5e1858aec8598c5f3fbc310c4a4e7d2198
 
 
 class LoginForm(FlaskForm):
@@ -17,12 +21,15 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
+<<<<<<< HEAD
 class RegisterForm(FlaskForm):
     username = StringField('Логин', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     submit = SubmitField('Зарегистрироваться')
 
 
+=======
+>>>>>>> c2a2ba5e1858aec8598c5f3fbc310c4a4e7d2198
 class TestRandom:
     def __init__(self):
         self.questions = random.sample(list(all_dicts2.keys()), 10)
@@ -45,6 +52,7 @@ class TestRandom:
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+<<<<<<< HEAD
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -55,6 +63,9 @@ test_obj = TestRandom()
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
+=======
+test_obj = TestRandom()
+>>>>>>> c2a2ba5e1858aec8598c5f3fbc310c4a4e7d2198
 
 
 @app.route('/')
@@ -119,5 +130,8 @@ def test():
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     db_session.global_init("db/users.db")
+=======
+>>>>>>> c2a2ba5e1858aec8598c5f3fbc310c4a4e7d2198
     app.run(port=5000, host='127.0.0.1')
