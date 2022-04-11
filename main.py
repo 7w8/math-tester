@@ -2,14 +2,13 @@ from flask import Flask, render_template, redirect, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import random
 from answers import all_dicts2
 from data import db_session
 from data.users import User
 import sqlite3
 import hashlib
-from answers import all_dicts, all_dicts2
 
 
 class LoginForm(FlaskForm):
@@ -23,6 +22,7 @@ class RegisterForm(FlaskForm):
     password = PasswordField('Пароль', validators=[DataRequired()])
     submit = SubmitField('Зарегистрироваться')
 
+
 class TestRandom:
     def __init__(self):
         self.questions = random.sample(list(all_dicts2.keys()), 10)
@@ -30,7 +30,8 @@ class TestRandom:
     def new_questions(self):
         self.questions = random.sample(list(all_dicts2.keys()), 10)
 
-    def check_answers(self):
+    def check_answers(self, user):
+        db_sess = db_session.create_session()
         grade, mistakes = 0, []
         for i in range(len(self.questions)):
             answer = "ans" + str(i + 1)
@@ -38,6 +39,11 @@ class TestRandom:
                 grade += 10
             else:
                 mistakes.append((self.questions[i], request.form[answer], all_dicts2[self.questions[i]]))
+        user.total_grade += grade
+        user.mistakes_count += len(mistakes)
+        user.done_count += 1
+        db_sess.merge(user)
+        db_sess.commit()
         self.new_questions()
         result = (str(grade) + "%", mistakes)
         return result
@@ -47,6 +53,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
+
 test_obj = TestRandom()
 
 
@@ -66,6 +73,8 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect("/")
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -78,9 +87,10 @@ def login():
                                form=form)
     return render_template('login.html', title='Авторизация', form=form)
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect("/")
     form = RegisterForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -107,16 +117,26 @@ def logout():
     return redirect("/")
 
 
-@app.route('/test', methods=['POST', 'GET'])
-def test():
+@app.route('/randtest', methods=['POST', 'GET'])
+def randtest():
     if request.method == 'GET':
         return render_template('test.html', q1=test_obj.questions[0], q2=test_obj.questions[1],
                                q3=test_obj.questions[2], q4=test_obj.questions[3], q5=test_obj.questions[4],
                                q6=test_obj.questions[5], q7=test_obj.questions[6], q8=test_obj.questions[7],
                                q9=test_obj.questions[8], q10=test_obj.questions[9])
     elif request.method == 'POST':
-        return render_template("result.html", result=test_obj.check_answers())
+        return render_template("result.html", result=test_obj.check_answers(current_user))
 
+
+@app.route('/test/<int:id>')
+def test(id):
+    if request.method == 'GET':
+        return render_template('test.html', q1=test_obj.questions[0], q2=test_obj.questions[1],
+                               q3=test_obj.questions[2], q4=test_obj.questions[3], q5=test_obj.questions[4],
+                               q6=test_obj.questions[5], q7=test_obj.questions[6], q8=test_obj.questions[7],
+                               q9=test_obj.questions[8], q10=test_obj.questions[9])
+    elif request.method == 'POST':
+        return render_template("result.html", result=test_obj.check_answers(current_user))
 
 if __name__ == '__main__':
     db_session.global_init("db/users.db")
