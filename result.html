@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form class="test_form">
+    <h1>Ваш результат: {{ result[0] }}</h1>
+    {% if current_user.is_authenticated %}
+    <br>
+<h3>Ваши ошибки:</h3>
+{% for item in result[1] %}
+    {{ item[0] }}
+<br>
+    <b>Ваш ответ:</b> {{ item[1] }}
+<br>
+    <b>Правильный ответ:</b> {{ item[2] }}
+    <br><br>
+{% endfor %}
+    {% else %}
+    Чтобы просмотреть свои ошибки, <a href="/register">зарегистрируйтесь</a> или <a href="/login">войдите</a>
+{% endif %}
+</form>
+{% endblock %}
