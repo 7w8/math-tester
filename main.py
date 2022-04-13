@@ -4,10 +4,9 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import random
-from answers import all_dicts2
+from answers import all_dicts, all_dicts2
 from data import db_session
 from data.users import User
-import sqlite3
 import hashlib
 
 
@@ -17,6 +16,7 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
+
 class RegisterForm(FlaskForm):
     username = StringField('Логин', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
@@ -24,11 +24,18 @@ class RegisterForm(FlaskForm):
 
 
 class TestRandom:
-    def __init__(self):
-        self.questions = random.sample(list(all_dicts2.keys()), 10)
+    def __init__(self, num=None):
+        self.id = num
+        if self.id is None:
+            self.questions = random.sample(list(all_dicts2.keys()), 10)
+        else:
+            self.questions = random.sample(list(all_dicts[self.id].keys()), 10)
 
     def new_questions(self):
-        self.questions = random.sample(list(all_dicts2.keys()), 10)
+        if self.id is None:
+            self.questions = random.sample(list(all_dicts2.keys()), 10)
+        else:
+            self.questions = random.sample(list(all_dicts[self.id].keys()), 10)
 
     def check_answers(self, user):
         db_sess = db_session.create_session()
@@ -39,11 +46,12 @@ class TestRandom:
                 grade += 10
             else:
                 mistakes.append((self.questions[i], request.form[answer], all_dicts2[self.questions[i]]))
-        user.total_grade += grade
-        user.mistakes_count += len(mistakes)
-        user.done_count += 1
-        db_sess.merge(user)
-        db_sess.commit()
+        if user.is_authenticated:
+            user.total_grade += grade
+            user.mistakes_count += len(mistakes)
+            user.done_count += 1
+            db_sess.merge(user)
+            db_sess.commit()
         self.new_questions()
         result = (str(grade) + "%", mistakes)
         return result
@@ -66,9 +74,7 @@ def load_user(user_id):
 @app.route('/')
 @app.route('/index')
 def index():
-    user = "Ученик Яндекс.Лицея"
-    return render_template('index.html', title='Домашняя страница',
-                           username=user)
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -86,6 +92,7 @@ def login():
                                message="Неправильный логин или пароль",
                                form=form)
     return render_template('login.html', title='Авторизация', form=form)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -116,10 +123,20 @@ def logout():
     logout_user()
     return redirect("/")
 
-
-@app.route('/randtest', methods=['POST', 'GET'])
-def randtest():
+@app.route('/test', methods=['POST', 'GET'])
+def test():
     if request.method == 'GET':
+        test_id = request.args.get("test_id")
+        if test_id is None:
+            test_obj.id = test_id
+        else:
+            if not test_id.isnumeric():
+                return redirect("/")
+            else:
+                if int(test_id) > 4:
+                    return redirect("/")
+            test_obj.id = int(test_id)
+        test_obj.new_questions()
         return render_template('test.html', q1=test_obj.questions[0], q2=test_obj.questions[1],
                                q3=test_obj.questions[2], q4=test_obj.questions[3], q5=test_obj.questions[4],
                                q6=test_obj.questions[5], q7=test_obj.questions[6], q8=test_obj.questions[7],
@@ -127,16 +144,11 @@ def randtest():
     elif request.method == 'POST':
         return render_template("result.html", result=test_obj.check_answers(current_user))
 
+@app.route('/test_index')
+def test_index():
+    return render_template('test_index.html')
 
-@app.route('/test/<int:id>')
-def test(id):
-    if request.method == 'GET':
-        return render_template('test.html', q1=test_obj.questions[0], q2=test_obj.questions[1],
-                               q3=test_obj.questions[2], q4=test_obj.questions[3], q5=test_obj.questions[4],
-                               q6=test_obj.questions[5], q7=test_obj.questions[6], q8=test_obj.questions[7],
-                               q9=test_obj.questions[8], q10=test_obj.questions[9])
-    elif request.method == 'POST':
-        return render_template("result.html", result=test_obj.check_answers(current_user))
+
 
 if __name__ == '__main__':
     db_session.global_init("db/users.db")
