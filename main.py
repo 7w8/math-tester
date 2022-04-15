@@ -45,10 +45,20 @@ class TestRandom:
             if request.form[answer] == all_dicts2[self.questions[i]]:
                 grade += 10
             else:
-                mistakes.append((self.questions[i], request.form[answer], all_dicts2[self.questions[i]]))
+                if user.is_authenticated:
+                    if self.questions[i] in all_dicts[0]:
+                        user.mistakes_0 += 1
+                    if self.questions[i] in all_dicts[1]:
+                        user.mistakes_1 += 1
+                    if self.questions[i] in all_dicts[2]:
+                        user.mistakes_2 += 1
+                    if self.questions[i] in all_dicts[3]:
+                        user.mistakes_3 += 1
+                    if self.questions[i] in all_dicts[4]:
+                        user.mistakes_4 += 1
+                    mistakes.append((self.questions[i], request.form[answer], all_dicts2[self.questions[i]]))
         if user.is_authenticated:
             user.total_grade += grade
-            user.mistakes_count += len(mistakes)
             user.done_count += 1
             db_sess.merge(user)
             db_sess.commit()
@@ -56,6 +66,22 @@ class TestRandom:
         result = (str(grade) + "%", mistakes)
         return result
 
+
+advice = ["Старайтесь вставать и ложиться в одно и то же время. Спите 7-8 часов в сутки.",
+          "Придерживайтесь правильного питания. В вашем рационе круглый год должны быть овощи и фрукты.",
+          "Занимайтесь фитнесом. Некоторые необходимые мозгу белки интенсивно вырабатываются только"
+          " при физической нагрузке. Необязательно ходить в спортзал. Простая зарядка и прогулка "
+          "уже существенно улучшают познавательные функции.", "Делайте перерывы каждые 25-30 минут интенсивной "
+                                                              "мыслительной деятельности. Только не стоит во время "
+                                                              "отдыха открывать социальные сети или смотреть сериалы "
+                                                              "— новый поток информации не позволит расслабиться. "
+                                                              "Лучше выпить чаю или просто полежать с закрытыми "
+                                                              "глазами.",
+          "Чередуйте предметы и темы, чтобы учиться было легче.", "Сосредотачивайтесь на одной задаче.",
+          "Освойте один или несколько методов конспектирования. Конспекты — вовсе не долго и нудно, а легко и полезно. "
+          "Правильно сделанная запись поможет осмыслить и запомнить информацию, и учиться станет легче. ",
+          "Тренируйте скорочтение. Медленное чтение приводит к отвлечениям, от которых устаёшь. "
+          "А главное, медленно читающий человек не успевает за растущим объёмом информации."]
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -109,7 +135,8 @@ def register():
         user = User()
         user.username = form.username.data
         user.password = hashlib.md5(form.password.data.encode()).hexdigest()
-        user.done_count, user.mistakes_count, user.total_grade = 0, 0, 0
+        user.done_count, user.mistakes_0, user.mistakes_1, \
+        user.mistakes_2, user.mistakes_3, user.mistakes_4, user.total_grade = 0, 0, 0, 0, 0, 0, 0
         db_sess.add(user)
         db_sess.commit()
         login_user(user)
@@ -122,6 +149,7 @@ def register():
 def logout():
     logout_user()
     return redirect("/")
+
 
 @app.route('/test', methods=['POST', 'GET'])
 def test():
@@ -144,10 +172,18 @@ def test():
     elif request.method == 'POST':
         return render_template("result.html", result=test_obj.check_answers(current_user))
 
+
 @app.route('/test_index')
 def test_index():
     return render_template('test_index.html')
 
+
+@app.route("/account")
+@login_required
+def account():
+    return render_template("account.html", username=current_user.username,
+                           average=str(int(current_user.total_grade / current_user.done_count)) + "%",
+                           worst=current_user.find_worst(), advice=random.choice(advice))
 
 
 if __name__ == '__main__':
