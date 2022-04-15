@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="height: 100px;"></div>
+<h1>Добро пожаловать, {{ username }}</h1>
+<div style="height: 100px;"></div>
+ <div style="width: 100%; overflow: hidden; text-align: center;">
+     <div style="width: 50%; float: left;"> <h3>Ваша средняя оценка: {{ average }}</h3>
+         Рекомендуем Вам поработать над темой: {{ worst }} </div>
+     <div style="margin-left: 52%; "><h3>Полезный совет:</h3> {{ advice }}
+     </div>
+</div>
+<div style="height: 100px;"></div>
+<a class="btn btn-primary " href="/logout">Выйти из аккаунта</a>
+
+{% endblock %}
