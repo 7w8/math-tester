@@ -4,6 +4,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import random
+import os
 from answers import all_dicts, all_dicts2
 from data import db_session
 from data.users import User
@@ -188,4 +189,5 @@ def account():
 
 if __name__ == '__main__':
     db_session.global_init("db/users.db")
-    app.run(port=5000, host='127.0.0.1')
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
