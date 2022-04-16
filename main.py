@@ -182,8 +182,12 @@ def test_index():
 @app.route("/account")
 @login_required
 def account():
+    if current_user.done_count == 0:
+        average = "0%"
+    else:
+        average = str(int(current_user.total_grade / current_user.done_count)) + "%"
     return render_template("account.html", username=current_user.username,
-                           average=str(int(current_user.total_grade / current_user.done_count)) + "%",
+                           average=average,
                            worst=current_user.find_worst(), advice=random.choice(advice))
 
 
